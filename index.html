@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ConversorMD — Lexbyte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #080807;
+      --border:       rgba(255, 255, 255, 0.07);
+      --border-drop:  rgba(210, 195, 168, 0.38);
+      --border-hover: rgba(200, 185, 154, 0.70);
+      --text:         #EDE9E2;
+      --text-2:       #7C7874;
+      --text-3:       #3C3A36;
+      --accent:       #C8B99A;
+      --danger:       #C86B6B;
+      --success:      #6BA88E;
+      --r:            16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 84px 20px 80px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 500px;
+      animation: rise 0.5s ease both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── HEADER ────────────────────────────────── */
+
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .eyebrow {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(3rem, 9vw, 4.5rem);
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: -0.025em;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .tagline {
+      font-size: 0.875rem;
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.65;
+      max-width: 38ch;
+      margin-inline: auto;
+    }
+
+    /* ── DROP ZONE ─────────────────────────────── */
+
+    .drop-zone {
+      border: 1px dashed var(--border-drop);
+      border-radius: var(--r);
+      padding: 52px 28px;
+      text-align: center;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      transition: background 180ms ease, border-color 180ms ease;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.over,
+    .drop-zone:focus-visible {
+      background: rgba(200, 185, 154, 0.03);
+      border-color: var(--border-hover);
+    }
+
+    .drop-title {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .drop-hint {
+      font-size: 0.8rem;
+      color: var(--text-2);
+      margin-bottom: 24px;
+    }
+
+    .formats {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--text-3);
+    }
+
+    /* ── SUMMARY ───────────────────────────────── */
+
+    .summary {
+      font-size: 0.75rem;
+      color: var(--text-2);
+      text-align: right;
+      padding: 10px 2px 4px;
+    }
+
+    .summary strong {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    /* ── FILE LIST ─────────────────────────────── */
+
+    .file-list { margin-bottom: 28px; }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 2px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .file-row:first-child { border-top: 1px solid var(--border); }
+
+    .file-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      font-weight: 400;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(200, 185, 154, 0.08);
+      border: 1px solid rgba(200, 185, 154, 0.18);
+      border-radius: 4px;
+      padding: 2px 6px;
+      flex-shrink: 0;
+    }
+
+    .file-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.775rem;
+      font-weight: 300;
+      color: var(--text);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size {
+      font-size: 0.7rem;
+      color: var(--text-3);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .file-rm {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: color 130ms, background 130ms;
+      line-height: 1;
+    }
+
+    .file-rm:hover {
+      color: var(--danger);
+      background: rgba(200, 107, 107, 0.10);
+    }
+
+    /* ── ACTIONS ───────────────────────────────── */
+
+    .actions { display: flex; flex-direction: column; gap: 8px; }
+
+    .btn-convert {
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--text);
+      color: #080807;
+      border: none;
+      border-radius: var(--r);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: background 170ms ease, transform 120ms ease;
+    }
+
+    .btn-convert:hover:not(:disabled) {
+      background: #f5f0e6;
+      transform: translateY(-1px);
+    }
+
+    .btn-convert:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-convert:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+    }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.775rem;
+      font-weight: 300;
+      cursor: pointer;
+      padding: 8px;
+      text-align: center;
+      transition: color 130ms;
+    }
+
+    .btn-clear:hover { color: var(--text-2); }
+
+    /* ── PROGRESS ──────────────────────────────── */
+
+    .progress-area { margin-top: 24px; }
+
+    .progress-rail {
+      height: 1px;
+      background: var(--border);
+      border-radius: 1px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: inherit;
+      transition: width 220ms ease;
+    }
+
+    .status-msg {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 300;
+      color: var(--text-2);
+    }
+
+    .status-msg.err { color: var(--danger); }
+    .status-msg.ok  { color: var(--success); }
+
+    /* ── FOOTER ────────────────────────────────── */
+
+    footer {
+      margin-top: 80px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .f-note {
+      font-size: 0.7rem;
+      color: var(--text-3);
+      max-width: 42ch;
+      margin-inline: auto;
+      line-height: 1.6;
+    }
+
+    .f-brand {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .f-brand a {
+      color: var(--text-2);
+      text-decoration: none;
+      transition: color 130ms;
+    }
+
+    .f-brand a:hover { color: var(--accent); }
+
+    /* ── RESPONSIVE ────────────────────────────── */
+
+    @media (max-width: 540px) {
+      body { padding: 56px 16px 64px; }
+      .drop-zone { padding: 40px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="header">
+      <span class="eyebrow">by Lexbyte</span>
+      <h1 class="brand">ConversorMD</h1>
+      <p class="tagline">Convierte documentos a Markdown para Claude, ChatGPT y cualquier plataforma de IA.</p>
+    </header>
+
+    <main>
+      <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Subir archivos">
+        <input type="file" id="file-input" multiple hidden />
+        <p class="drop-title">Arrastra tus documentos aquí</p>
+        <p class="drop-hint">o haz clic para seleccionar archivos</p>
+        <div class="formats">PDF · DOCX · PPTX · XLSX · TXT · HTML</div>
+      </div>
+
+      <p class="summary" id="summary" style="display:none"></p>
+      <div class="file-list" id="file-list"></div>
+
+      <div class="actions">
+        <button class="btn-convert" id="convert-btn" type="button" disabled>
+          Convertir a Markdown
+        </button>
+        <button class="btn-clear" id="clear-btn" type="button">Limpiar archivos</button>
+      </div>
+
+      <div class="progress-area" id="progress-area" style="display:none">
+        <div class="progress-rail">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p class="status-msg" id="status-msg"></p>
+      </div>
+    </main>
+
+    <footer>
+      <p class="f-note">Los archivos son procesados en Railway y eliminados automáticamente. Sin almacenamiento de documentos.</p>
+      <p class="f-brand">by <a href="https://lexbyte.net" target="_blank" rel="noopener">Lexbyte</a></p>
+    </footer>
+
+  </div>
+
+  <script>
+    const API = "https://conversormd-backend-production.up.railway.app";
+
+    const dropZone    = document.getElementById("drop-zone");
+    const fileInput   = document.getElementById("file-input");
+    const fileListEl  = document.getElementById("file-list");
+    const summaryEl   = document.getElementById("summary");
+    const convertBtn  = document.getElementById("convert-btn");
+    const clearBtn    = document.getElementById("clear-btn");
+    const progressArea = document.getElementById("progress-area");
+    const progressFill = document.getElementById("progress-fill");
+    const statusMsg    = document.getElementById("status-msg");
+
+    let files = [];
+
+    /* ── Helpers ─────────────────────────────── */
+
+    const fmt = n => {
+      if (!n) return "0 B";
+      const u = ["B", "KB", "MB"];
+      const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), 2);
+      return (n / 1024 ** i).toFixed(i ? 1 : 0) + " " + u[i];
+    };
+
+    const getExt = name => (name.split(".").pop() || "bin").toUpperCase();
+
+    const cd2name = (cd, fallback) => {
+      if (!cd) return fallback;
+      const u = cd.match(/filename\*=UTF-8''([^;]+)/i);
+      if (u) return decodeURIComponent(u[1]);
+      const p = cd.match(/filename="?([^";]+)"?/i);
+      return p ? p[1] : fallback;
+    };
+
+    const save = (blob, name) => {
+      const url = URL.createObjectURL(blob);
+      const a   = Object.assign(document.createElement("a"), { href: url, download: name });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    };
+
+    /* ── Render ──────────────────────────────── */
+
+    function render() {
+      fileListEl.innerHTML = "";
+
+      files.forEach((f, i) => {
+        const row = document.createElement("div");
+        row.className = "file-row";
+
+        const badge = document.createElement("span");
+        badge.className = "file-badge";
+        badge.textContent = getExt(f.name);
+
+        const name = document.createElement("span");
+        name.className = "file-name";
+        name.textContent = f.name;
+        name.title = f.name;
+
+        const size = document.createElement("span");
+        size.className = "file-size";
+        size.textContent = fmt(f.size);
+
+        const rm = document.createElement("button");
+        rm.className = "file-rm";
+        rm.type = "button";
+        rm.title = "Eliminar";
+        rm.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>`;
+        rm.onclick = () => { files = files.filter((_, j) => j !== i); render(); };
+
+        row.append(badge, name, size, rm);
+        fileListEl.append(row);
+      });
+
+      const n = files.length;
+      if (n) {
+        const out = n === 1 ? ".md" : ".zip";
+        summaryEl.innerHTML = `<strong>${n}</strong> archivo${n > 1 ? "s" : ""} → <strong>${out}</strong>`;
+        summaryEl.style.display = "";
+      } else {
+        summaryEl.style.display = "none";
+      }
+
+      convertBtn.disabled = n === 0;
+    }
+
+    function addFiles(list) {
+      const inc  = Array.from(list || []);
+      if (!inc.length) return;
+      const seen = new Set(files.map(f => f.name + f.size));
+      files = [...files, ...inc.filter(f => !seen.has(f.name + f.size))];
+      render();
+    }
+
+    /* ── Events ──────────────────────────────── */
+
+    dropZone.addEventListener("click",   () => fileInput.click());
+    dropZone.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+    });
+    fileInput.addEventListener("change", e => { addFiles(e.target.files); fileInput.value = ""; });
+
+    dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.classList.add("over"); });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("over"));
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      dropZone.classList.remove("over");
+      addFiles(e.dataTransfer.files);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      files = [];
+      fileInput.value = "";
+      render();
+      progressArea.style.display = "none";
+    });
+
+    /* ── Convert ─────────────────────────────── */
+
+    convertBtn.addEventListener("click", async () => {
+      if (!files.length) return;
+
+      const big = files.find(f => f.size > 20 * 1024 * 1024);
+      if (big) { setStatus(`${big.name} supera el límite de 20 MB.`, "err"); return; }
+
+      convertBtn.disabled = true;
+      convertBtn.textContent = "Convirtiendo…";
+      setStatus("Preparando…");
+      setProgress(0);
+      progressArea.style.display = "";
+
+      const fd = new FormData();
+      files.forEach(f => fd.append("files", f));
+
+      try {
+        const xhr = await new Promise((ok, fail) => {
+          const x = new XMLHttpRequest();
+          x.open("POST", `${API}/api/convert`);
+          x.responseType = "blob";
+
+          x.upload.onprogress = e => {
+            if (e.lengthComputable) {
+              setProgress(Math.round((e.loaded / e.total) * 62));
+              setStatus(`Subiendo… ${Math.round(e.loaded / e.total * 100)}%`);
+            }
+          };
+
+          x.onreadystatechange = () => {
+            if (x.readyState === 3) {
+              setProgress(82);
+              setStatus(files.length === 1 ? "Procesando documento…" : "Generando archivo ZIP…");
+            }
+          };
+
+          x.onload  = () => ok(x);
+          x.onerror = () => fail(new Error("No se pudo conectar con el servidor."));
+          x.send(fd);
+        });
+
+        if (xhr.status < 200 || xhr.status >= 300) {
+          let msg = `Error HTTP ${xhr.status}`;
+          try {
+            const txt = await new Promise((res, rej) => {
+              const fr = new FileReader();
+              fr.onload  = () => res(fr.result);
+              fr.onerror = rej;
+              fr.readAsText(xhr.response);
+            });
+            const j = JSON.parse(txt);
+            if (j?.detail) msg = j.detail;
+          } catch (_) {}
+          throw new Error(msg);
+        }
+
+        const cd   = xhr.getResponseHeader("Content-Disposition") || "";
+        const kind = xhr.getResponseHeader("X-Output-Kind") || "";
+        const name = cd2name(cd, kind === "zip" ? "convertidos.zip" : "documento.md");
+        save(xhr.response, name);
+
+        setProgress(100);
+        setStatus((files.length === 1 ? "Descargado: " : "ZIP descargado: ") + name, "ok");
+
+      } catch (err) {
+        console.error(err);
+        setProgress(0);
+        setStatus(err.message || "Error desconocido.", "err");
+      } finally {
+        convertBtn.textContent = "Convertir a Markdown";
+        convertBtn.disabled = files.length === 0;
+      }
+    });
+
+    /* ── State helpers ───────────────────────── */
+
+    function setStatus(text, type = "") {
+      progressArea.style.display = "";
+      statusMsg.className = "status-msg" + (type ? " " + type : "");
+      statusMsg.textContent = text;
+    }
+
+    function setProgress(pct) {
+      progressFill.style.width = pct + "%";
+    }
+
+    /* init */
+    render();
+  </script>
+</body>
+</html>
