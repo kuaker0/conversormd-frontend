@@ -502,6 +502,9 @@
   <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const API = "https://conversormd-backend-production.up.railway.app";
 
+    /* ── Track visit ── */
+    fetch(`${API}/api/track`, { method: "POST", keepalive: true }).catch(() => {});
+
     const dropZone    = document.getElementById("drop-zone");
     const fileInput   = document.getElementById("file-input");
     const fileListEl  = document.getElementById("file-list");
